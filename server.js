@@ -12,9 +12,11 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
+// Tells Render to serve the layout cleanly from the primary folder layer directly
+app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 1. Initialize SQLite Database (creates a file automatically)
+// 1. Initialize SQLite Database
 const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) => {
     if (err) console.error('Database connection error:', err);
     else console.log('Connected to SQLite Database.');
@@ -37,7 +39,6 @@ db.serialize(() => {
     )`);
 });
 
-// Map to track active online users: { username: socketId }
 const onlineUsers = new Map();
 
 // 3. Secure Auth HTTP Routes for the Login Screen
@@ -63,7 +64,12 @@ app.post('/api/login', async (req, res) => {
     });
 });
 
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('*', (req, res) => {
+    // Falls back seamlessly to whichever folder holds the active index file layer
+    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+        if (err) res.sendFile(path.join(__dirname, 'index.html'));
+    });
+});
 
 // 4. WebSockets Engine for Secure Real-Time Messaging & Deletion
 io.on('connection', (socket) => {
@@ -75,7 +81,6 @@ io.on('connection', (socket) => {
         io.emit('updateUserList', Array.from(onlineUsers.keys()));
     });
 
-    // Fetch permanent history only between the logged-in user and selected contact
     socket.on('loadHistory', (targetUser) => {
         db.all(`SELECT * FROM messages WHERE 
             (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
@@ -85,18 +90,13 @@ io.on('connection', (socket) => {
             });
     });
 
-    // Handle Private Message Routing
     socket.on('privateMessage', (data) => {
         const { receiver, text } = data;
         db.run(`INSERT INTO messages (sender, receiver, text) VALUES (?, ?, ?)`, 
             [currentUsername, receiver, text], function(err) {
                 if (err) return;
                 const msgPayload = { id: this.lastID, sender: currentUsername, receiver, text };
-                
-                // Echo back to sender window
                 socket.emit('incomingMessage', msgPayload);
-                
-                // Route directly to the receiver if they are currently online
                 const receiverSocketId = onlineUsers.get(receiver);
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit('incomingMessage', msgPayload);
@@ -104,7 +104,6 @@ io.on('connection', (socket) => {
             });
     });
 
-    // Secure Delete Function: Only the actual sender can delete their message
     socket.on('deleteMessage', (messageId) => {
         db.run(`DELETE FROM messages WHERE id = ? AND sender = ?`, [messageId, currentUsername], (err) => {
             if (!err) io.emit('messageDeleted', messageId);
@@ -119,6 +118,5 @@ io.on('connection', (socket) => {
     });
 });
 
-// 5. Cloud deployment port configuration listener
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => console.log(`GDChat Engine live on port ${PORT}`));
