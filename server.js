@@ -1,36 +1,124 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcrypt');
 
 const app = express();
 const server = http.createServer(app);
-
-// Configured with CORS allowance for global internet traffic
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+const io = new Server(server, { 
+    cors: { origin: "*" } 
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-io.on("connection", (socket) => {
-    console.log("User Connected to Global Network: " + socket.id);
+// 1. Initialize SQLite Database (creates a file automatically)
+const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) => {
+    if (err) console.error('Database connection error:', err);
+    else console.log('Connected to SQLite Database.');
+});
 
-    // Listens for WhatsApp style chats globally
-    socket.on("chat message", (data) => {
-        io.emit("chat message", data);
-    });
+// 2. Create tables for Users and Private Messages permanently
+db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT
+    )`);
 
-    socket.on("disconnect", () => {
-        console.log("User Disconnected: " + socket.id);
+    db.run(`CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender TEXT,
+        receiver TEXT,
+        text TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+});
+
+// Map to track active online users: { username: socketId }
+const onlineUsers = new Map();
+
+// 3. Secure Auth HTTP Routes for the Login Screen
+app.post('/api/register', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: "Missing fields" });
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        db.run(`INSERT INTO users (username, password) VALUES (?, ?)`, [username, hashedPassword], function(err) {
+            if (err) return res.status(400).json({ error: "Username already exists" });
+            res.json({ success: true });
+        });
+    } catch { res.status(500).json({ error: "Server error" }); }
+});
+
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, user) => {
+        if (err || !user) return res.status(400).json({ error: "User not found" });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return res.status(400).json({ error: "Wrong password" });
+        res.json({ success: true, username: user.username });
     });
 });
 
-// Crucial fix: Pulls the dynamic network port from online servers like Render
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// 4. WebSockets Engine for Secure Real-Time Messaging & Deletion
+io.on('connection', (socket) => {
+    let currentUsername = "";
+
+    socket.on('registerOnlineUser', (username) => {
+        currentUsername = username;
+        onlineUsers.set(username, socket.id);
+        io.emit('updateUserList', Array.from(onlineUsers.keys()));
+    });
+
+    // Fetch permanent history only between the logged-in user and selected contact
+    socket.on('loadHistory', (targetUser) => {
+        db.all(`SELECT * FROM messages WHERE 
+            (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
+            ORDER BY timestamp ASC`, 
+            [currentUsername, targetUser, targetUser, currentUsername], (err, rows) => {
+                if (!err) socket.emit('chatHistory', rows);
+            });
+    });
+
+    // Handle Private Message Routing
+    socket.on('privateMessage', (data) => {
+        const { receiver, text } = data;
+        db.run(`INSERT INTO messages (sender, receiver, text) VALUES (?, ?, ?)`, 
+            [currentUsername, receiver, text], function(err) {
+                if (err) return;
+                const msgPayload = { id: this.lastID, sender: currentUsername, receiver, text };
+                
+                // Echo back to sender window
+                socket.emit('incomingMessage', msgPayload);
+                
+                // Route directly to the receiver if they are currently online
+                const receiverSocketId = onlineUsers.get(receiver);
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit('incomingMessage', msgPayload);
+                }
+            });
+    });
+
+    // Secure Delete Function: Only the actual sender can delete their message
+    socket.on('deleteMessage', (messageId) => {
+        db.run(`DELETE FROM messages WHERE id = ? AND sender = ?`, [messageId, currentUsername], (err) => {
+            if (!err) io.emit('messageDeleted', messageId);
+        });
+    });
+
+    socket.on('disconnect', () => {
+        if (currentUsername) {
+            onlineUsers.delete(currentUsername);
+            io.emit('updateUserList', Array.from(onlineUsers.keys()));
+        }
+    });
+});
+
+// 5. Cloud deployment port configuration listener
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log("🚀 GDChat Internet Server Online on Port " + PORT);
-});
+server.listen(PORT, '0.0.0.0', () => console.log(`GDChat Engine live on port ${PORT}`));
