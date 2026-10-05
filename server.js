@@ -117,3 +117,77 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => console.log(`GDChat Engine live on port ${PORT}`));
+// 📝 SQLITE REGISTRATION ROUTE
+app.post('/register', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ error: "Username and password are required." });
+        }
+
+        // 1. Securely hash the password using your imported bcrypt
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // 2. Insert the user into your SQLite database
+        const sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
+        db.run(sql, [username, hashedPassword], function (err) {
+            if (err) {
+                // If username already exists, SQLite throws a UNIQUE constraint error
+                if (err.message.includes("UNIQUE")) {
+                    return res.status(400).json({ error: "Username is already taken." });
+                }
+                console.error(err.message);
+                return res.status(500).json({ error: "Database error during registration." });
+            }
+            
+            res.status(201).json({ message: "Registration successful! You can log in now." });
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Something went wrong during registration." });
+    }
+});
+
+// 🔑 SQLITE LOGIN ROUTE
+app.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ error: "Username and password are required." });
+        }
+
+        // 1. Look up the user in your SQLite database
+        const sql = `SELECT * FROM users WHERE username = ?`;
+        db.get(sql, [username], async (err, user) => {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).json({ error: "Database error during login." });
+            }
+
+            // If user doesn't exist
+            if (!user) {
+                return res.status(400).json({ error: "Invalid username or password." });
+            }
+
+            // 2. Compare entered password with the saved hashed password
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ error: "Invalid username or password." });
+            }
+
+            // Login success! Send back user info (excluding password)
+            res.status(200).json({ 
+                message: "Login successful!", 
+                user: { id: user.id, username: user.username } 
+            });
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Something went wrong during login." });
+    }
+});
