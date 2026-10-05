@@ -18,12 +18,19 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; justify-content: center; align-items: center; }
         
-        .auth-container { background: var(--input-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); width: 90%; max-width: 380px; text-align: center; }
-        .auth-container h2 { margin-bottom: 20px; color: var(--header-bg); }
-        .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--text-muted); border-radius: 6px; font-size: 1rem; background: var(--input-bg); color: var(--text-main); }
-        .auth-btn { width: 100%; padding: 12px; background: var(--header-bg); color: var(--header-text); border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        .auth-switch { margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
+        /* Interactive Auth Window Screen with Winter Cabin Concept Background */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: url('https://unsplash.com') no-repeat center center/cover;
+            display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
+        .auth-container { background: rgba(32, 44, 51, 0.85); backdrop-filter: blur(10px); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); width: 90%; max-width: 380px; text-align: center; color: #ffffff; }
+        .auth-container h2 { margin-bottom: 20px; color: #34b7f1; font-size: 1.8rem; }
+        .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 6px; font-size: 1rem; background: #ffffff; color: #303030; outline: none; }
+        .auth-btn { width: 100%; padding: 12px; background: #e9edef; color: #202c33; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        .auth-switch { margin-top: 15px; font-size: 0.85rem; color: #8696a0; cursor: pointer; text-decoration: underline; }
         
+        /* Main Application Dashboard Window */
         .app-container { display: none; width: 100vw; height: 100vh; flex-direction: column; }
         header { background-color: var(--header-bg); color: var(--header-text); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .main-layout { display: flex; flex: 1; overflow: hidden; }
@@ -49,12 +56,15 @@
 </head>
 <body>
 
-    <div class="auth-container" id="authScreen">
-        <h2 id="authTitle">Login to GDChat</h2>
-        <input type="text" id="authUsername" placeholder="Enter Username" autocomplete="off">
-        <input type="password" id="authPassword" placeholder="Enter Password">
-        <button class="auth-btn" id="authSubmitBtn">Login</button>
-        <div class="auth-switch" id="authSwitchMode">Don't have an account? Sign Up</div>
+    <!-- Unified Form Context Container -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-container">
+            <h2 id="authTitle">Login ChatApp</h2>
+            <input type="text" id="authUsername" placeholder="Enter username" autocomplete="off">
+            <input type="password" id="authPassword" placeholder="Enter Password">
+            <button class="auth-btn" id="authSubmitBtn">Login</button>
+            <div class="auth-switch" id="authSwitchMode">Don't have an account?</div>
+        </div>
     </div>
 
     <div class="app-container" id="appScreen">
@@ -83,7 +93,7 @@
         let activeTargetUser = "";
         let isLoginMode = true;
 
-        const authScreen = document.getElementById('authScreen');
+        const authOverlay = document.getElementById('authOverlay');
         const appScreen = document.getElementById('appScreen');
         const authTitle = document.getElementById('authTitle');
         const authSubmitBtn = document.getElementById('authSubmitBtn');
@@ -91,9 +101,9 @@
         
         authSwitchMode.addEventListener('click', () => {
             isLoginMode = !isLoginMode;
-            authTitle.textContent = isLoginMode ? "Login to GDChat" : "Create Account";
+            authTitle.textContent = isLoginMode ? "Login ChatApp" : "Create Account";
             authSubmitBtn.textContent = isLoginMode ? "Login" : "Sign Up";
-            authSwitchMode.textContent = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
+            authSwitchMode.textContent = isLoginMode ? "Don't have an account?" : "Already have an account? Login";
         });
 
         authSubmitBtn.addEventListener('click', async () => {
@@ -124,7 +134,7 @@
         });
 
         function initializeChatSystem() {
-            authScreen.style.display = "none";
+            authOverlay.style.display = "none";
             appScreen.style.display = "flex";
             document.getElementById('welcomeLabel').textContent = `GDChat (${myUsername})`;
 
@@ -172,13 +182,3 @@
         }
 
         function renderSingleBubble(msg) {
-            const chatScreen = document.getElementById('chatScreen');
-            const isMe = msg.sender === myUsername;
-            const bubble = document.createElement('div');
-            bubble.id = `msg-${msg.id}`;
-            bubble.className = `bubble ${isMe ? 'sent' : 'received'}`;
-            bubble.innerHTML = `
-                <span>${msg.text}</span>
-                ${isMe ? `<span class="delete-msg-btn" onclick="deleteMsg(${msg.id})">Delete for everyone</span>` : ''}
-            `;
-            chatScreen.appendChild(bubble);
