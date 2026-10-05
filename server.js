@@ -12,8 +12,7 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
-// Tells Render to serve the layout cleanly from the primary folder layer directly
-app.use(express.static(__dirname));
+// Strictly serve static assets from the public directory subfolder layout
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 1. Initialize SQLite Database
@@ -22,7 +21,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) =
     else console.log('Connected to SQLite Database.');
 });
 
-// 2. Create tables for Users and Private Messages permanently
+// 2. Create tables permanently
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +40,7 @@ db.serialize(() => {
 
 const onlineUsers = new Map();
 
-// 3. Secure Auth HTTP Routes for the Login Screen
+// 3. Secure Auth HTTP Routes
 app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: "Missing fields" });
@@ -64,14 +63,12 @@ app.post('/api/login', async (req, res) => {
     });
 });
 
+// Strictly serves the core dark template out of the public subfolder path
 app.get('*', (req, res) => {
-    // Falls back seamlessly to whichever folder holds the active index file layer
-    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
-        if (err) res.sendFile(path.join(__dirname, 'index.html'));
-    });
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 4. WebSockets Engine for Secure Real-Time Messaging & Deletion
+// 4. WebSockets Engine
 io.on('connection', (socket) => {
     let currentUsername = "";
 
