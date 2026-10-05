@@ -1,301 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GDChat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDChat Platform</title>
     <style>
-        /* WhatsApp Color Palettes */
         :root {
-            --bg-color: #efeae2;
-            --header-bg: #075e54;
-            --header-text: #ffffff;
-            --bubble-sent: #dcf8c6;
-            --bubble-received: #ffffff;
-            --text-main: #303030;
-            --text-muted: #727272;
-            --footer-bg: #f0f0f0;
-            --input-bg: #ffffff;
-            --grid-opacity: 0.04;
+            --bg-color: #efeae2; --header-bg: #075e54; --header-text: #ffffff;
+            --bubble-sent: #dcf8c6; --bubble-received: #ffffff; --text-main: #303030;
+            --text-muted: #727272; --footer-bg: #f0f0f0; --input-bg: #ffffff;
         }
-
-        /* WhatsApp Dark Mode Theme Colors */
         [data-theme="dark"] {
-            --bg-color: #0b141a;
-            --header-bg: #202c33;
-            --header-text: #e9edef;
-            --bubble-sent: #005c4b;
-            --bubble-received: #202c33;
-            --text-main: #e9edef;
-            --text-muted: #8696a0;
-            --footer-bg: #202c33;
-            --input-bg: #2a3942;
-            --grid-opacity: 0.15;
+            --bg-color: #0b141a; --header-bg: #202c33; --header-text: #e9edef;
+            --bubble-sent: #005c4b; --bubble-received: #202c33; --text-main: #e9edef;
+            --text-muted: #8696a0; --footer-bg: #202c33; --input-bg: #2a3942;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.2s ease, color 0.2s ease; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; justify-content: center; align-items: center; }
         
-        body { 
-            background-color: var(--bg-color); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* The Grid background sheet */
-        .grid-bg {
-            background-image: linear-gradient(rgba(0,0,0,var(--grid-opacity)) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0,0,0,var(--grid-opacity)) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-
-        /* WhatsApp Top Header Bar */
-        .header { 
-            background-color: var(--header-bg); 
-            color: var(--header-text); 
-            padding: 12px 16px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-        }
+        .auth-container { background: var(--input-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); width: 90%; max-width: 380px; text-align: center; }
+        .auth-container h2 { margin-bottom: 20px; color: var(--header-bg); }
+        .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--text-muted); border-radius: 6px; font-size: 1rem; background: var(--input-bg); color: var(--text-main); }
+        .auth-btn { width: 100%; padding: 12px; background: var(--header-bg); color: var(--header-text); border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .auth-switch { margin-top: 15px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
         
-        .profile-area { display: flex; align-items: center; gap: 12px; }
-
-        .profile-pic { 
-            width: 40px; 
-            height: 40px; 
-            background-color: #128c7e; 
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        /* Mode Switch Button styling */
-        .theme-toggle-btn {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--header-text);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Clean Message Stream Area */
-        .chat-screen { 
-            flex: 1; 
-            padding: 80px 16px 70px 16px; 
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* Professional Message Bubbles Layout */
-        .bubble { 
-            max-width: 80%; 
-            padding: 8px 12px; 
-            border-radius: 8px; 
-            position: relative;
-            word-wrap: break-word;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
-            color: var(--text-main);
-        }
-        .sent { 
-            background-color: var(--bubble-sent); 
-            align-self: flex-end; 
-            border-top-right-radius: 0;
-        }
-        .received { 
-            background-color: var(--bubble-received); 
-            align-self: flex-start; 
-            border-top-left-radius: 0;
-        }
-
-        .sender-name { font-size: 12px; font-weight: bold; color: #128c7e; margin-bottom: 3px; }
-        [data-theme="dark"] .sender-name { color: #53bdeb; }
-
-        .message-text { font-size: 15px; line-height: 1.4; padding-right: 45px; }
-
-        .time { 
-            font-size: 11px; 
-            color: var(--text-muted); 
-            position: absolute;
-            bottom: 4px;
-            right: 8px;
-        }
-
-        /* Bottom Controls Input Strip */
-        .input-container { 
-            position: fixed; 
-            bottom: 0; 
-            width: 100%; 
-            background: var(--footer-bg);
-            padding: 8px 10px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            z-index: 100;
-        }
+        .app-container { display: none; width: 100vw; height: 100vh; flex-direction: column; }
+        header { background-color: var(--header-bg); color: var(--header-text); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
         
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            background-color: var(--input-bg);
-            border-radius: 25px;
-            padding: 4px 12px;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-        }
-
-        .emoji-trigger {
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            padding-right: 8px;
-        }
+        .sidebar { width: 35%; border-right: 1px solid var(--text-muted); background: var(--input-bg); overflow-y: auto; }
+        .sidebar-title { padding: 12px; font-size: 0.9rem; background: var(--footer-bg); color: var(--text-muted); font-weight: bold; }
+        .user-item { padding: 15px; border-bottom: 1px solid var(--footer-bg); cursor: pointer; font-weight: bold; }
+        .user-item:hover { background: var(--bg-color); }
         
-        input { 
-            flex: 1; 
-            padding: 8px 4px;
-            border: none; 
-            background: transparent;
-            color: var(--text-main);
-            font-size: 16px;
-            outline: none;
-        }
+        .chat-area { width: 65%; display: flex; flex-direction: column; background: var(--bg-color); }
+        .chat-screen { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; position: relative; font-size: 0.95rem; display: flex; flex-direction: column; }
+        .bubble.sent { background-color: var(--bubble-sent); align-self: flex-end; border-top-right-radius: 0; }
+        .bubble.received { background-color: var(--bubble-received); align-self: flex-start; border-top-left-radius: 0; }
+        .delete-msg-btn { font-size: 0.65rem; color: red; cursor: pointer; text-align: right; margin-top: 4px; display: none; }
+        .bubble.sent:hover .delete-msg-btn { display: block; }
         
-        .send-btn { 
-            background-color: #00a884; 
-            color: white; 
-            border: none;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        /* Pop-up Emoji Drawer Panel */
-        .emoji-drawer {
-            position: fixed;
-            bottom: 58px;
-            left: 10px;
-            background: var(--input-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-            padding: 10px;
-            display: none;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            z-index: 200;
-            max-width: 250px;
-        }
-        .emoji-drawer span {
-            font-size: 24px;
-            cursor: pointer;
-            text-align: center;
-        }
+        .input-wrapper { background-color: var(--footer-bg); padding: 10px; display: flex; align-items: center; gap: 8px; }
+        .input-wrapper input { flex: 1; background-color: var(--input-bg); border: none; padding: 12px; border-radius: 20px; color: var(--text-main); outline: none; }
+        .send-btn { background: transparent; border: none; font-size: 1.5rem; color: var(--header-bg); cursor: pointer; }
     </style>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
-<body class="grid-bg" data-theme="light">
+<body>
 
-    <!-- Header bar navigation component -->
-    <div class="header">
-        <div class="profile-area">
-            <div class="profile-pic" id="userAvatar">SO</div>
-            <div>
-                <h3 style="font-size: 16px;" id="chatHeaderTitle">GDChat (Somto)</h3>
-                <span style="font-size: 12px; opacity: 0.85;">online</span>
+    <div class="auth-container" id="authScreen">
+        <h2 id="authTitle">Login to GDChat</h2>
+        <input type="text" id="authUsername" placeholder="Enter Username" autocomplete="off">
+        <input type="password" id="authPassword" placeholder="Enter Password">
+        <button class="auth-btn" id="authSubmitBtn">Login</button>
+        <div class="auth-switch" id="authSwitchMode">Don't have an account? Sign Up</div>
+    </div>
+
+    <div class="app-container" id="appScreen">
+        <header>
+            <span id="welcomeLabel">GDChat</span>
+            <button onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light')" style="background: transparent; color: white; border: 1px solid white; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Theme</button>
+        </header>
+        <div class="main-layout">
+            <div class="sidebar">
+                <div class="sidebar-title">ONLINE CONTACTS</div>
+                <div id="userList"></div>
+            </div>
+            <div class="chat-area">
+                <div class="chat-screen" id="chatScreen"></div>
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Select an online contact to text..." disabled>
+                    <button class="send-btn" id="sendBtn">➤</button>
+                </div>
             </div>
         </div>
-        <!-- Theme management button -->
-        <button class="theme-toggle-btn" id="themeToggleBtn">Dark Mode</button>
     </div>
 
-    <!-- Main Live Message Streams viewport -->
-    <div class="chat-screen" id="chatScreen">
-        <div class="bubble received">
-            <div class="sender-name">System</div>
-            <div class="message-text">Engine initialization completed. 👋</div>
-            <span class="time">11:15 PM</span>
-        </div>
-    </div>
-
-    <!-- Pop up list grid inside layout -->
-    <div class="emoji-drawer" id="emojiDrawer">
-        <span>😀</span><span>😂</span><span>😍</span><span>👍</span><span>🙏</span><span>🔥</span>
-        <span>❤️</span><span>🎉</span><span>😎</span><span>👏</span><span>🙌</span><span>💯</span>
-    </div>
-
-    <!-- Core typing text block layout wrapper -->
-    <div class="input-container">
-        <div class="input-wrapper">
-            <button class="emoji-trigger" id="emojiBtn">😀</button>
-            <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
-        </div>
-        <button class="send-btn" id="sendBtn">Send</button>
-    </div>
-
-    <!-- Active Interface Program Handlers -->
     <script>
-        const bodyElement = document.body;
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const emojiBtn = document.getElementById('emojiBtn');
-        const emojiDrawer = document.getElementById('emojiDrawer');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatScreen = document.getElementById('chatScreen');
+        let socket;
+        let myUsername = "";
+        let activeTargetUser = "";
+        let isLoginMode = true;
 
-        let currentUsername = "Somto";
+        const authScreen = document.getElementById('authScreen');
+        const appScreen = document.getElementById('appScreen');
+        const authTitle = document.getElementById('authTitle');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const authSwitchMode = document.getElementById('authSwitchMode');
+        
+        authSwitchMode.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authTitle.textContent = isLoginMode ? "Login to GDChat" : "Create Account";
+            authSubmitBtn.textContent = isLoginMode ? "Login" : "Sign Up";
+            authSwitchMode.textContent = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
+        });
 
-        // 1. Dynamic Interactive Dark Theme Toggle Switch Logic
-        themeToggleBtn.addEventListener('click', () => {
-            if (bodyElement.getAttribute('data-theme') === 'light') {
-                bodyElement.setAttribute('data-theme', 'dark');
-                themeToggleBtn.textContent = "Light Mode";
+        authSubmitBtn.addEventListener('click', async () => {
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
+            if(!username || !password) return alert("Please fill fields");
+
+            const path = isLoginMode ? '/api/login' : '/api/register';
+            const response = await fetch(path, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                if (!isLoginMode) {
+                    alert("Registration successful! Please login.");
+                    isLoginMode = true;
+                    authSwitchMode.click();
+                } else {
+                    myUsername = username;
+                    initializeChatSystem();
+                }
             } else {
-                bodyElement.setAttribute('data-theme', 'light');
-                themeToggleBtn.textContent = "Dark Mode";
+                alert(result.error || "Authentication failed");
             }
         });
 
-        // 2. Interactive Emoji Drawer Insertion Logic
-        emojiBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            emojiDrawer.style.display = emojiDrawer.style.display === 'grid' ? 'none' : 'grid';
-        });
+        function initializeChatSystem() {
+            authScreen.style.display = "none";
+            appScreen.style.display = "flex";
+            document.getElementById('welcomeLabel').textContent = `GDChat (${myUsername})`;
 
-        // Hide emoji list tray when clicking anywhere else inside layout body
-        document.addEventListener('click', () => {
-            emojiDrawer.style.display = 'none';
-        });
+            socket = io();
+            socket.emit('registerOnlineUser', myUsername);
 
-        // Inject picked emojis instantly into current text box positioning
-        emojiDrawer.querySelectorAll('span').forEach(emojiSpan => {
-            emojiSpan.addEventListener('click', (e) => {
-                messageInput.value += e.target.textContent;
-                messageInput.focus();
+            socket.on('updateUserList', (users) => {
+                const userListDiv = document.getElementById('userList');
+                userListDiv.innerHTML = "";
+                users.forEach(user => {
+                    if (user !== myUsername) {
+                        const item = document.createElement('div');
+                        item.className = 'user-item';
+                        item.textContent = user;
+                        item.onclick = () => selectContactUser(user);
+                        userListDiv.appendChild(item);
+                    }
+                });
             });
-        });
 
-        // 3. Message display renderer helper block
-        function appendMessage(text, sender, type) {
+            socket.on('chatHistory', (messages) => {
+                const chatScreen = document.getElementById('chatScreen');
+                chatScreen.innerHTML = "";
+                messages.forEach(renderSingleBubble);
+            });
+
+            socket.on('incomingMessage', (msg) => {
+                if ((msg.sender === myUsername && msg.receiver === activeTargetUser) || 
+                    (msg.sender === activeTargetUser && msg.receiver === myUsername)) {
+                    renderSingleBubble(msg);
+                }
+            });
+
+            socket.on('messageDeleted', (msgId) => {
+                const bubble = document.getElementById(`msg-${msgId}`);
+                if (bubble) bubble.remove();
+            });
+        }
+
+        function selectContactUser(targetUser) {
+            activeTargetUser = targetUser;
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('messageInput').placeholder = `Message ${targetUser}...`;
+            socket.emit('loadHistory', targetUser);
+        }
+
+        function renderSingleBubble(msg) {
+            const chatScreen = document.getElementById('chatScreen');
+            const isMe = msg.sender === myUsername;
+            const bubble = document.createElement('div');
+            bubble.id = `msg-${msg.id}`;
+            bubble.className = `bubble ${isMe ? 'sent' : 'received'}`;
+            bubble.innerHTML = `
+                <span>${msg.text}</span>
+                ${isMe ? `<span class="delete-msg-btn" onclick="deleteMsg(${msg.id})">Delete for everyone</span>` : ''}
+            `;
+            chatScreen.appendChild(bubble);
