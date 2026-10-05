@@ -1,83 +1,99 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GDChat Platform</title>
     <style>
         :root {
-            --bg-color: #efeae2; --header-bg: #075e54; --header-text: #ffffff;
-            --bubble-sent: #dcf8c6; --bubble-received: #ffffff; --text-main: #303030;
-            --text-muted: #727272; --footer-bg: #f0f0f0; --input-bg: #ffffff;
+            --bg-main: #0b141a;       /* Deep solid dark background */
+            --bg-sidebar: #111b21;    /* Slightly lighter dark for sidebar panel */
+            --bg-header: #202c33;     /* Dark accent background for header titles */
+            --border-color: #222e35;  /* Clean thin partition separators */
+            --accent-green: #00a884;  /* Premium active status indicator green */
+            --text-white: #e9edef;    /* Highly readable crisp white for text */
+            --text-muted: #8696a0;    /* Soft gray for secondary hints */
+            --bubble-sent: #005c4b;   /* Solid dark green for outgoing messages */
+            --bubble-recv: #202c33;   /* Solid matching gray-dark for incoming messages */
         }
-        [data-theme="dark"] {
-            --bg-color: #0b141a; --header-bg: #202c33; --header-text: #e9edef;
-            --bubble-sent: #005c4b; --bubble-received: #202c33; --text-main: #e9edef;
-            --text-muted: #8696a0; --footer-bg: #202c33; --input-bg: #2a3942;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; justify-content: center; align-items: center; }
         
-        /* Interactive Auth Window Screen with Winter Cabin Concept Background */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-white); height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        
+        /* 1. Sleek, Plain Dark Authentication Window Context Container */
         .auth-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: url('https://unsplash.com') no-repeat center center/cover;
+            background-color: var(--bg-main);
             display: flex; justify-content: center; align-items: center; z-index: 100;
         }
-        .auth-container { background: rgba(32, 44, 51, 0.85); backdrop-filter: blur(10px); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); width: 90%; max-width: 380px; text-align: center; color: #ffffff; }
-        .auth-container h2 { margin-bottom: 20px; color: #34b7f1; font-size: 1.8rem; }
-        .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 6px; font-size: 1rem; background: #ffffff; color: #303030; outline: none; }
-        .auth-btn { width: 100%; padding: 12px; background: #e9edef; color: #202c33; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; margin-top: 15px; font-weight: bold; }
-        .auth-switch { margin-top: 15px; font-size: 0.85rem; color: #8696a0; cursor: pointer; text-decoration: underline; }
+        .auth-container { background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 35px; border-radius: 12px; width: 90%; max-width: 380px; text-align: center; }
+        .auth-container h2 { margin-bottom: 25px; color: var(--text-white); font-size: 1.8rem; font-weight: 600; }
+        .auth-container input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; background: var(--bg-main); color: var(--text-white); outline: none; }
+        .auth-container input:focus { border-color: var(--accent-green); }
+        .auth-btn { width: 100%; padding: 14px; background: var(--accent-green); color: var(--text-white); border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        .auth-switch { margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
         
-        /* Main Application Dashboard Window */
-        .app-container { display: none; width: 100vw; height: 100vh; flex-direction: column; }
-        header { background-color: var(--header-bg); color: var(--header-text); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        /* 2. Structured Private Chat Dashboard Framework Workspace */
+        .app-container { display: none; width: 100vw; height: 100vh; flex-direction: column; background-color: var(--bg-main); }
+        header { background-color: var(--bg-header); color: var(--text-white); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
+        .main-layout { display: flex; flex: 1; overflow: hidden; width: 100vw; }
         
-        .sidebar { width: 35%; border-right: 1px solid var(--text-muted); background: var(--input-bg); overflow-y: auto; }
-        .sidebar-title { padding: 12px; font-size: 0.9rem; background: var(--footer-bg); color: var(--text-muted); font-weight: bold; }
-        .user-item { padding: 15px; border-bottom: 1px solid var(--footer-bg); cursor: pointer; font-weight: bold; }
-        .user-item:hover { background: var(--bg-color); }
+        /* Left Navigation Panel Contacts Area List */
+        .sidebar { width: 35%; background: var(--bg-sidebar); overflow-y: auto; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
+        .sidebar-title { padding: 15px; font-size: 0.85rem; background: var(--bg-header); color: var(--accent-green); font-weight: bold; letter-spacing: 1px; border-bottom: 1px solid var(--border-color); }
+        .user-item { padding: 18px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        .user-item:hover { background: var(--bg-header); }
+        .user-item.active { background: var(--bg-header); border-left: 4px solid var(--accent-green); }
         
-        .chat-area { width: 65%; display: flex; flex-direction: column; background: var(--bg-color); }
-        .chat-screen { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; position: relative; font-size: 0.95rem; display: flex; flex-direction: column; }
-        .bubble.sent { background-color: var(--bubble-sent); align-self: flex-end; border-top-right-radius: 0; }
-        .bubble.received { background-color: var(--bubble-received); align-self: flex-start; border-top-left-radius: 0; }
-        .delete-msg-btn { font-size: 0.65rem; color: red; cursor: pointer; text-align: right; margin-top: 4px; display: none; }
+        /* Right Active Private Viewport Pane Layout */
+        .chat-area { width: 65%; display: flex; flex-direction: column; background: var(--bg-main); position: relative; }
+        .chat-header { background: var(--bg-header); padding: 15px 20px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid var(--border-color); color: var(--text-white); }
+        .chat-screen { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background-color: var(--bg-main); }
+        
+        /* Secure Message Chat Bubbles & Removal Operations Controls */
+        .bubble { max-width: 65%; padding: 10px 14px; border-radius: 8px; position: relative; font-size: 0.95rem; display: flex; flex-direction: column; line-height: 1.4; box-shadow: 0 1px 1px rgba(0,0,0,0.15); }
+        .bubble.sent { background-color: var(--bubble-sent); align-self: flex-end; border-top-right-radius: 0; color: var(--text-white); }
+        .bubble.received { background-color: var(--bubble-recv); align-self: flex-start; border-top-left-radius: 0; color: var(--text-white); }
+        .delete-msg-btn { font-size: 0.65rem; color: #ff5e5e; cursor: pointer; text-align: right; margin-top: 6px; display: none; font-weight: bold; text-decoration: underline; }
         .bubble.sent:hover .delete-msg-btn { display: block; }
         
-        .input-wrapper { background-color: var(--footer-bg); padding: 10px; display: flex; align-items: center; gap: 8px; }
-        .input-wrapper input { flex: 1; background-color: var(--input-bg); border: none; padding: 12px; border-radius: 20px; color: var(--text-main); outline: none; }
-        .send-btn { background: transparent; border: none; font-size: 1.5rem; color: var(--header-bg); cursor: pointer; }
+        /* Message Field Footer Panel Control Tray Layout */
+        .input-wrapper { background-color: var(--bg-header); padding: 15px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--border-color); }
+        .input-wrapper input { flex: 1; background-color: var(--bg-main); border: 1px solid var(--border-color); padding: 14px 20px; border-radius: 24px; color: var(--text-white); outline: none; font-size: 1rem; }
+        .input-wrapper input:focus { border-color: var(--accent-green); }
+        .input-wrapper input:disabled { opacity: 0.4; cursor: not-allowed; }
+        .send-btn { background: transparent; border: none; font-size: 1.6rem; color: var(--accent-green); cursor: pointer; padding: 0 5px; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-    <!-- Unified Form Context Container -->
+    <!-- 1. Pure Dark Screen Login & Profile Account Creation Layout Panel -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-container">
             <h2 id="authTitle">Login ChatApp</h2>
             <input type="text" id="authUsername" placeholder="Enter username" autocomplete="off">
             <input type="password" id="authPassword" placeholder="Enter Password">
             <button class="auth-btn" id="authSubmitBtn">Login</button>
-            <div class="auth-switch" id="authSwitchMode">Don't have an account?</div>
+            <div class="auth-switch" id="authSwitchMode">Don't have an account? Sign Up</div>
         </div>
     </div>
 
+    <!-- 2. The Internal Main Secure Dashboard Workspace Canvas -->
     <div class="app-container" id="appScreen">
         <header>
             <span id="welcomeLabel">GDChat</span>
-            <button onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light')" style="background: transparent; color: white; border: 1px solid white; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Theme</button>
+            <span style="font-size: 0.85rem; color: var(--accent-green); font-weight: normal;">● Protected Session</span>
         </header>
         <div class="main-layout">
+            <!-- Sidebar Navigation Contacts Panel -->
             <div class="sidebar">
                 <div class="sidebar-title">ONLINE CONTACTS</div>
                 <div id="userList"></div>
             </div>
+            <!-- Messaging Feed Viewport Box Frame Layout -->
             <div class="chat-area">
+                <div class="chat-header" id="chatPartnerHeader">Select a contact from the sidebar to chat securely</div>
                 <div class="chat-screen" id="chatScreen"></div>
                 <div class="input-wrapper">
                     <input type="text" id="messageInput" placeholder="Select an online contact to text..." disabled>
@@ -95,7 +111,7 @@
 
         const authOverlay = document.getElementById('authOverlay');
         const appScreen = document.getElementById('appScreen');
-        const authTitle = document.getElementById('authTitle');
+        const authTitle = document.querySelector('.auth-container h2');
         const authSubmitBtn = document.getElementById('authSubmitBtn');
         const authSwitchMode = document.getElementById('authSwitchMode');
         
@@ -103,7 +119,7 @@
             isLoginMode = !isLoginMode;
             authTitle.textContent = isLoginMode ? "Login ChatApp" : "Create Account";
             authSubmitBtn.textContent = isLoginMode ? "Login" : "Sign Up";
-            authSwitchMode.textContent = isLoginMode ? "Don't have an account?" : "Already have an account? Login";
+            authSwitchMode.textContent = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
         });
 
         authSubmitBtn.addEventListener('click', async () => {
@@ -137,48 +153,4 @@
             authOverlay.style.display = "none";
             appScreen.style.display = "flex";
             document.getElementById('welcomeLabel').textContent = `GDChat (${myUsername})`;
-
-            socket = io();
-            socket.emit('registerOnlineUser', myUsername);
-
-            socket.on('updateUserList', (users) => {
-                const userListDiv = document.getElementById('userList');
-                userListDiv.innerHTML = "";
-                users.forEach(user => {
-                    if (user !== myUsername) {
-                        const item = document.createElement('div');
-                        item.className = 'user-item';
-                        item.textContent = user;
-                        item.onclick = () => selectContactUser(user);
-                        userListDiv.appendChild(item);
-                    }
-                });
-            });
-
-            socket.on('chatHistory', (messages) => {
-                const chatScreen = document.getElementById('chatScreen');
-                chatScreen.innerHTML = "";
-                messages.forEach(renderSingleBubble);
-            });
-
-            socket.on('incomingMessage', (msg) => {
-                if ((msg.sender === myUsername && msg.receiver === activeTargetUser) || 
-                    (msg.sender === activeTargetUser && msg.receiver === myUsername)) {
-                    renderSingleBubble(msg);
-                }
-            });
-
-            socket.on('messageDeleted', (msgId) => {
-                const bubble = document.getElementById(`msg-${msgId}`);
-                if (bubble) bubble.remove();
-            });
-        }
-
-        function selectContactUser(targetUser) {
-            activeTargetUser = targetUser;
-            document.getElementById('messageInput').disabled = false;
-            document.getElementById('messageInput').placeholder = `Message ${targetUser}...`;
-            socket.emit('loadHistory', targetUser);
-        }
-
-        function renderSingleBubble(msg) {
+                
