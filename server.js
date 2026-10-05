@@ -65,7 +65,7 @@ app.post('/api/login', async (req, res) => {
 
 // Strictly serves the core dark template out of the public subfolder path
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'appview.html'));
 });
 
 // 4. WebSockets Engine
