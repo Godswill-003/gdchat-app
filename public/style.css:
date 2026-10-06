@@ -1,0 +1,223 @@
+:root {
+    --bg-main: #0f141c;
+    --bg-card: #18202c;
+    --accent: #0fb682;
+    --accent-hover: #0ca374;
+    --text-main: #ffffff;
+    --text-muted: #8b9bb4;
+    --border: #26354a;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.auth-container {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.brand-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.brand-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.brand-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.form-panel {
+    display: none;
+}
+
+.form-panel.active {
+    display: block;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.input-container-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"] {
+    width: 100%;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: var(--text-main);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: var(--accent);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 10;
+}
+
+.profile-picker-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.avatar-preview {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background-color: var(--bg-main);
+    border: 2px dashed var(--border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.avatar-preview span {
+    font-size: 24px;
+    color: var(--text-muted);
+}
+
+.extra-options {
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.remember-me input {
+    accent-color: var(--accent);
+}
+
+.submit-btn {
+    width: 100%;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.switch-prompt {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.switch-prompt a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.otp-box-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.otp-input {
+    width: 56px;
+    height: 56px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-main);
+    outline: none;
+}
+
+.resend-text {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 16px;
+}
+
+.resend-text span {
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 600;
+}
