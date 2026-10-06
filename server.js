@@ -11,18 +11,15 @@ const io = new Server(server, {
     cors: { origin: "*" }
 });
 
-// Middleware configuration parsing setups
-app.use(express.json({ limit: '10mb' })); 
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize SQLite database instance link
 const db = new sqlite3.Database('./database.sqlite', (err) => {
     if (err) console.error("Database connection failure:", err.message);
-    else console.log("Connected to SQLite secure storage database.");
 });
 
-// 📊 UPGRADED SCHEMA: Supports Phone, Email, Avatar data, and active OTP caching tracking keys
+// Initialize Unified Storage Schemas
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,129 +30,115 @@ db.serialize(() => {
         avatar TEXT,
         current_otp TEXT
     )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender TEXT,
+        recipient TEXT,
+        message TEXT,
+        timestamp TEXT,
+        is_ephemeral INTEGER DEFAULT 0
+    )`);
 });
 
-// 📝 1. NEW REGISTRATION ROUTE (Handles Email/Phone parsing + Avatar saving)
+// Onboarding & Challenge Authentication Routes
 app.post('/register', async (req, res) => {
     try {
         const { username, contact, password, type, avatar } = req.body;
-
-        if (!username || !contact || !password || !type) {
-            return res.status(400).json({ error: "All account credential parameters are required." });
-        }
-
-        // Hashing structural verification layers
+        if (!username || !contact || !password) return res.status(400).json({ error: "Missing parameters." });
+        
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Generate a random WhatsApp-style 4-digit OTP code string sequence 
         const generationOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
         const sql = `INSERT INTO users (username, contact, type, password, avatar, current_otp) VALUES (?, ?, ?, ?, ?, ?)`;
-        
         db.run(sql, [username, contact, type, hashedPassword, avatar || "", generationOtp], function (err) {
-            if (err) {
-                if (err.message.includes("UNIQUE")) {
-                    return res.status(400).json({ error: "Username or contact info already associated with an account." });
-                }
-                return res.status(500).json({ error: "Database exception storage failure configuration." });
-            }
-
-            // 🚀 SECURITY CONSOLE LOGGER: Read this code within your Render terminal stream log lines to pass checks instantly!
-            console.log(`\n===============================================\n[OTP SYSTEM DISPATCH] To user: ${username}\nVerification destination: ${contact}\n👉 LIVE CONFIRMATION OTP ACCESS KEY: ${generationOtp}\n===============================================\n`);
-
-            res.status(201).json({ message: "Registration pass successful. Processing verification step." });
+            if (err) return res.status(400).json({ error: "Username or contact info already taken." });
+            console.log(`\n===============================================\n👉 LIVE CONFIRMATION OTP ACCESS KEY: ${generationOtp}\n===============================================\n`);
+            res.status(201).json({ message: "Registration successful." });
         });
-    } catch (err) {
-        res.status(500).json({ error: "System initialization operational collapse failure." });
-    }
+    } catch (err) { res.status(500).json({ error: "Server error." }); }
 });
 
-// 🔑 2. NEW INTERACTIVE LOGIN ROUTE (Validates identifier string fields + Updates OTP)
 app.post('/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
-
-        if (!identifier || !password) {
-            return res.status(400).json({ error: "All login parameters are required." });
-        }
-
         const sql = `SELECT * FROM users WHERE contact = ? OR username = ?`;
         db.get(sql, [identifier, identifier], async (err, user) => {
-            if (err) return res.status(500).json({ error: "Database error during pipeline lookup lookup processing query." });
             if (!user) return res.status(400).json({ error: "No account matched those credentials." });
-
             const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) return res.status(400).json({ error: "Incorrect password selection." });
+            if (!isMatch) return res.status(400).json({ error: "Incorrect password." });
 
-            // User verification passed password layer. Generate dynamic fresh code parameters.
             const freshOtp = Math.floor(1000 + Math.random() * 9000).toString();
-            
-            db.run(`UPDATE users SET current_otp = ? WHERE id = ?`, [freshOtp, user.id], (updateErr) => {
-                if (updateErr) return res.status(500).json({ error: "Failed to allocate validation tokens." });
-
-                // 🚀 SECURITY CONSOLE LOGGER: Read this code within your Render terminal stream log lines to pass checks instantly!
-                console.log(`\n===============================================\n[OTP SYSTEM DISPATCH] Welcome back user: ${user.username}\nVerification destination: ${user.contact}\n👉 LIVE CONFIRMATION OTP ACCESS KEY: ${freshOtp}\n===============================================\n`);
-
-                res.status(200).json({ message: "Password match confirmed. Transitioning to safety challenge layer." });
+            db.run(`UPDATE users SET current_otp = ? WHERE id = ?`, [freshOtp, user.id], () => {
+                console.log(`\n===============================================\n👉 LIVE CONFIRMATION OTP ACCESS KEY: ${freshOtp}\n===============================================\n`);
+                res.status(200).json({ message: "OTP challenge dispatched." });
             });
         });
-    } catch (err) {
-        res.status(500).json({ error: "Login routing interface runtime exception." });
-    }
+    } catch (err) { res.status(500).json({ error: "Server error." }); }
 });
 
-// 💬 3. WHATSAPP OTP VERIFICATION INTERCEPTOR ROUTE
 app.post('/verify-otp', (req, res) => {
     const { identifier, code } = req.body;
-
-    if (!identifier || !code) {
-        return res.status(400).json({ error: "Missing verification payload data signatures." });
-    }
-
     const sql = `SELECT * FROM users WHERE (contact = ? OR username = ?) AND current_otp = ?`;
     db.get(sql, [identifier, identifier, code], (err, user) => {
-        if (err) return res.status(500).json({ error: "Verification processing platform system error." });
-        if (!user) return res.status(400).json({ error: "Invalid verification code sequence. Please check your developer console logs." });
-
-        // Authentication finalized. Clear cached token state for session safety.
+        if (!user) return res.status(400).json({ error: "Invalid verification code." });
         db.run(`UPDATE users SET current_otp = NULL WHERE id = ?`, [user.id]);
-
-        res.status(200).json({
-            message: "Authentication cleared successfully!",
-            user: { id: user.id, username: user.username, avatar: user.avatar }
-        });
+        res.status(200).json({ user: { id: user.id, username: user.username, avatar: user.avatar } });
     });
 });
 
-// ⚡ REAL-TIME WEBSOCKET ROUTING GRAPH CHANNELS
-io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+// Load Historical Data Pipelines
+app.get('/api/users', (req, res) => {
+    db.all(`SELECT id, username, avatar FROM users`, [], (err, rows) => {
+        res.status(200).json(rows);
+    });
+});
 
+app.get('/api/messages', (req, res) => {
+    db.all(`SELECT sender, recipient, message, timestamp, is_ephemeral FROM messages ORDER BY id ASC`, [], (err, rows) => {
+        res.status(200).json(rows);
+    });
+});
+
+// Real-Time Signal Channels
+const globalOnlineDirectory = new Map();
+
+io.on('connection', (socket) => {
     socket.on('join_room', (username) => {
         socket.username = username;
-        socket.broadcast.emit('system_message', `${username} has joined the chat.`);
+        globalOnlineDirectory.set(username, socket.id);
+        io.emit('online_directory_update', Array.from(globalOnlineDirectory.keys()));
     });
 
     socket.on('send_message', (data) => {
-        const msgPayload = {
+        const payload = {
             sender: data.sender,
+            recipient: data.recipient,
             message: data.message,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            is_ephemeral: data.is_ephemeral || 0
         };
-        io.emit('receive_message', msgPayload);
+        db.run(`INSERT INTO messages (sender, recipient, message, timestamp, is_ephemeral) VALUES (?, ?, ?, ?, ?)`, 
+            [payload.sender, payload.recipient, payload.message, payload.timestamp, payload.is_ephemeral]);
+        io.emit('receive_message', payload);
+    });
+
+    socket.on('typing_state', (data) => {
+        socket.broadcast.emit('typing_relay', data);
+    });
+
+    socket.on('sync_video_state', (data) => {
+        socket.broadcast.emit('video_relay', data);
     });
 
     socket.on('disconnect', () => {
         if (socket.username) {
-            io.emit('system_message', `${socket.username} has left the chat.`);
+            globalOnlineDirectory.delete(socket.username);
+            io.emit('online_directory_update', Array.from(globalOnlineDirectory.keys()));
         }
-        console.log(`User disconnected: ${socket.id}`);
     });
 });
 
-// Allocate server ports dynamically
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running securely on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running secure on port ${PORT}`));
