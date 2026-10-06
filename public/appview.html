@@ -3,323 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDChat Platform - Chatroom</title>
+    <title>Dashboard Hub</title>
     <style>
-        :root {
-            --bg-main: #0f141c;
-            --bg-card: #18202c;
-            --accent: #0fb682;
-            --accent-hover: #0ca374;
-            --text-main: #ffffff;
-            --text-muted: #8b9bb4;
-            --border: #26354a;
-            --bubble-sent: #0ca374;
-            --bubble-received: #26354a;
-        }
+        :root { --bg:#090d14; --card:#121824; --accent:#0fb682; --border:#1f2a3a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Layout Grid Controls */
+        .app-shell { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 280px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .main-workspace { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        /* View Toggle Tabs */
+        .workspace-tabs { display: flex; background: #161f2e; border-bottom: 1px solid var(--border); }
+        .tab-btn { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-weight: bold; font-size: 13px; color: #7e8e9f; }
+        .tab-btn.active { color: white; border-bottom: 3px solid var(--accent); background: var(--card); }
+        
+        .view-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        .view-panel.active { display: flex; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        /* TikTok Streaming Feeds */
+        .video-feed-container { flex: 1; overflow-y: scroll; scroll-snap-type: y mandatory; height: 100%; background: black; }
+        .video-card { width: 100%; height: 100vh; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: center; }
+        .video-element { width: 100%; height: 100%; object-fit: cover; }
+        .floating-reaction-bar { position: absolute; right: 16px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+        .reaction-bubble-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 20px; border: 1px solid #333; }
+        
+        /* Timed Emoji Overlays Container */
+        .timed-comment-overlay { position: absolute; left: 20px; bottom: 100px; max-width: 300px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .floating-toast-msg { background: rgba(15, 182, 130, 0.85); padding: 8px 12px; border-radius: 8px; font-size: 13px; animation: slideUp 3s forwards; }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        /* WhatsApp Secure Chat Engine Layout */
+        .user-row { display: flex; align-items: center; padding: 12px 16px; gap: 12px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .user-row:hover { background: #161f2e; }
+        .avatar-frame { width: 40px; height: 40px; border-radius: 50%; background: #222d3d; object-fit: cover; position: relative; }
+        .status-badge { width: 10px; height: 10px; border-radius: 50%; background: #555; position: absolute; bottom: 0; right: 0; border: 2px solid var(--card); }
+        .status-badge.online { background: var(--accent); }
+        
+        .chat-log-box { flex: 1; padding: 20px; overflow-y: auto; background: #080b10; display: flex; flex-direction: column; gap: 12px; }
+        .msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 12px; font-size: 14px; display: flex; flex-direction: column; position: relative; }
+        .msg-bubble.sent { background: var(--accent); align-self: flex-end; }
+        .msg-bubble.received { background: #222d3d; align-self: flex-start; }
+        .msg-bubble .timestamp-tag { font-size: 9px; opacity: 0.6; align-self: flex-end; margin-top: 4px; }
+        .ephemeral-clock-icon { font-size: 10px; margin-left: 4px; color: #ffeb3b; }
 
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-main);
-        }
+        .typing-indicator-bar { padding: 4px 20px; font-size: 12px; color: var(--accent); font-style: italic; min-height: 20px; }
+        
+        .input-bar { background: var(--card); border-top: 1px solid var(--border); padding: 16px; display: flex; gap: 12px; align-items: center; }
+        .input-bar input { flex: 1; background: var(--bg); border: 1px solid var(--border); padding: 12px 18px; border-radius: 24px; color: white; outline: none; }
+        .action-send-btn { background: var(--accent); border: none; width: 44px; height: 44px; border-radius: 50%; color: white; font-weight: bold; cursor: pointer; }
 
-        /* Top Header Bar */
-        .chat-header {
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        /* Floating Picture-In-Picture View Window Layer */
+        .floating-pip-container { position: absolute; right: 20px; bottom: 90px; width: 200px; height: 120px; background: #000; border: 2px solid var(--accent); border-radius: 8px; overflow: hidden; display: none; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+        .floating-pip-container video { width: 100%; height: 100%; object-fit: cover; }
+        .close-pip-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer; }
 
-        .user-profile-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent);
-            background-color: var(--bg-main);
-        }
-
-        .header-username {
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .logout-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        /* 💬 Messages View Screen Container */
-        .chat-screen {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            background-color: #0c0f16;
-        }
-
-        /* Chat Bubbles Layout */
-        .message {
-            display: flex;
-            flex-direction: column;
-            max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            position: relative;
-            animation: popIn 0.2s ease-out;
-            word-wrap: break-word;
-        }
-
-        .message.sent {
-            background-color: var(--bubble-sent);
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-
-        .message.received {
-            background-color: var(--bubble-received);
-            color: white;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-        }
-
-        .message .username {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-        .message.sent .username {
-            color: #d1fae5;
-        }
-
-        .message .text {
-            font-size: 15px;
-            line-height: 1.4;
-        }
-
-        .message .time {
-            font-size: 10px;
-            align-self: flex-end;
-            margin-top: 4px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Bottom Entry Text Input Bar */
-        .chat-input-area {
-            background-color: var(--bg-card);
-            border-top: 1px solid var(--border);
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            background-color: var(--bg-main);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 14px 20px;
-            color: white;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .chat-input-area input:focus {
-            border-color: var(--accent);
-        }
-
-        .send-btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-
-        .send-btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.96); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="chat-container">
-    <!-- Header Area -->
-    <div class="chat-header">
-        <div class="user-profile-info">
-            <img id="my-avatar" class="header-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='40' height='40' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%2326354a'/></svg>" alt="Profile Picture">
-            <span id="my-username-display" class="header-username">Loading...</span>
+<div class="app-shell">
+    <!-- Sidebar Account Listing Blocks -->
+    <div class="sidebar">
+        <div style="padding: 16px; border-bottom: 1px solid var(--border); font-weight: bold; color: var(--accent);">Contacts Directory</div>
+        <div id="users-directory-list" style="flex:1; overflow-y:auto;">
+            <!-- Render Dynamic User Rows here -->
         </div>
-        <button class="logout-btn" onclick="logoutSession()">Logout</button>
     </div>
 
-    <!-- 💬 Messages View Screen Container -->
-    <div class="chat-screen" id="chatScreen">
-        <!-- Messages inject here dynamically -->
-    </div>
+    <!-- Main Active Workspace Panel Layers -->
+    <div class="main-workspace">
+        <div class="workspace-tabs">
+            <div class="tab-btn active" id="tab-discover" onclick="switchView('discover')">🎬 FOR YOU FEED</div>
+            <div class="tab-btn" id="tab-securechat" onclick="switchView('securechat')">💬 SECURE CHAT</div>
+        </div>
 
-    <!-- Bottom Entry Text Input Bar -->
-    <div class="chat-input-area">
-        <input type="text" id="message-input" placeholder="Type your message here..." onkeypress="handleKeyPress(event)" />
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➔</button>
+        <!-- MODULE 1: TikTok Discovery View Engine -->
+        <div class="view-panel active" id="panel-discover">
+            <div class="video-feed-container" id="videoFeed">
+                <!-- Stacked Vertical Video Elements -->
+                <div class="video-card" id="vid-card-1">
+                    <video class="video-element" loop muted autoplay playsinline src="https://googleapis.com"></video>
+                    <div class="timed-comment-overlay" id="overlay-card-1"></div>
+                    <div class="floating-reaction-bar">
+                        <div class="reaction-bubble-btn" onclick="fireLiveReaction('🔥', 'vid-card-1')">🔥</div>
+                        <div class="reaction-bubble-btn" onclick="fireLiveReaction('❤️', 'vid-card-1')">❤️</div>
+                        <div class="reaction-bubble-btn" onclick="activatePiPMode('https://googleapis.com')">📱 PiP</div>
+                        <div class="reaction-bubble-btn" onclick="clipSegmentToChat('Epic Clip from Movie #1')">✂️ Share</div>
+                    </div>
+                </div>
+                <div class="video-card" id="vid-card-2">
+                    <video class="video-element" loop muted playsinline src="https://googleapis.com"></video>
+                    <div class="timed-comment-overlay" id="overlay-card-2"></div>
+                    <div class="floating-reaction-bar">
+                        <div class="reaction-bubble-btn" onclick="fireLiveReaction('😮', 'vid-card-2')">😮</div>
+                        <div class="reaction-bubble-btn" onclick="fireLiveReaction('👏', 'vid-card-2')">👏</div>
+                        <div class="reaction-bubble-btn" onclick="activatePiPMode('https://googleapis.com')">📱 PiP</div>
+                        <div class="reaction-bubble-btn" onclick="clipSegmentToChat('Incredible Scene #2')">✂️ Share</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 2: WhatsApp Secure Interactive Chat Room Engine -->
+        <div class="view-panel" id="panel-securechat">
+            <div style="background:var(--card); padding:12px 20px; font-weight:bold; border-bottom:1px solid var(--border);" id="active-chat-title">Selecting Target Partner...</div>
+            <div class="chat-log-box" id="chatScreen"></div>
+            <div class="typing-indicator-bar" id="typingIndicator"></div>
+            <div class="input-bar">
+                <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="ephemeral-switch" style="width:auto;"> ⏳ 24h
+                </label>
+                <input type="text" id="message-input" placeholder="Type encrypted message..." oninput="emitTypingState()" onkeypress="checkEnterKey(event)" />
+                <button class="action-send-btn" onclick="executeSendMessage()">➔</button>
+            </div>
+        </div>
+
+        <!-- Shared Overlay Component: Picture-In-Picture Floating Interface Panel -->
+        <div class="floating-pip-container" id="pipWindow">
+            <button class="close-pip-btn" onclick="closePiPWindow()">X</button>
+            <video id="pipVideoElement" loop autoplay muted controls></video>
+        </div>
     </div>
 </div>
 
-<!-- Socket.io connection logic -->
 <script src="/socket.io/socket.io.js"></script>
 <script>
     let socket;
     let myUsername = "Anonymous";
+    let activeRecipient = "";
+    let onlineUsersList = [];
+    let allRegisteredUsers = [];
+    let typingTimeout;
 
-    // 1. Check user login status on initialization
     document.addEventListener("DOMContentLoaded", () => {
         const storedUser = localStorage.getItem('chatUser');
-        if (!storedUser) {
-            // No valid user session found, send them back to login page
-            window.location.href = "/index.html";
-            return;
-        }
+        if (!storedUser) return window.location.href = "/index.html";
 
         const user = JSON.parse(storedUser);
         myUsername = user.username;
-        document.getElementById('my-username-display').innerText = myUsername;
 
-        // Load profile avatar photo string if it exists
-        if(user.avatar && user.avatar.trim() !== "") {
-            document.getElementById('my-avatar').src = user.avatar;
-        }
-
-        initializeChatSystem();
+        initializeSystemConnections();
     });
 
-    // 2. Open Websocket Pipelines
-    function initializeChatSystem() {
-        socket = io();
-
-        // Broadcast presence status up to server pipelines
-        socket.emit('join_room', myUsername);
-
-        // 📥 RECEIVING A CHAT MESSAGE FROM THE SERVER
-        socket.on('receive_message', (data) => {
-            const chatWindow = document.getElementById('chatScreen'); 
-            if (!chatWindow) return;
-
-            const messageDiv = document.createElement('div');
-            
-            if (data.sender === myUsername) {
-                messageDiv.className = 'message sent';
-            } else {
-                messageDiv.className = 'message received';
-            }
-
-            messageDiv.innerHTML = `
-                <span class="username"><b>${data.sender}</b></span>
-                <p class="text">${data.message}</p>
-                <span class="time">${data.timestamp}</span>
-            `;
-
-            chatWindow.appendChild(messageDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight; // Keep view auto-scrolled down
-        });
-
-        // 📢 RECEIVING SYSTEM MESSAGES (Joins/Leaves)
-        socket.on('system_message', (text) => {
-            const chatWindow = document.getElementById('chatScreen');
-            if (!chatWindow) return;
-
-            const systemDiv = document.createElement('div');
-            systemDiv.className = 'system-notification';
-            systemDiv.style.textAlign = 'center';
-            systemDiv.style.color = '#727272';
-            systemDiv.style.margin = '10px 0';
-            systemDiv.style.fontSize = '13px';
-            systemDiv.innerText = text;
-            
-            chatWindow.appendChild(systemDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        });
-    }
-
-    // 📤 FUNCTION TO TRANSMIT INPUT VALUES TO BACKEND
-    function sendMessage() {
-        const messageInput = document.getElementById('message-input'); 
-        const messageText = messageInput.value.trim();
-
-        if (messageText !== "" && socket) {
-            socket.emit('send_message', {
-                sender: myUsername, 
-                message: messageText
-            });
-            messageInput.value = ''; 
-        }
-    }
-
-    // Allow the Enter key to submit messages automatically
-    function handleKeyPress(event) {
-        if (event.key === "Enter") {
-            sendMessage();
-        }
-    }
-
-    function logoutSession() {
-        localStorage.removeItem('chatUser');
-        window.location.href = "/index.html";
-    }
-</script>
-</body>
-    </html>
+    function switchView(panelId) {
