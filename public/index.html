@@ -3,230 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDChat Platform - Secure Entry</title>
-    <!-- Link to your new clean style file -->
+    <title>Secure Core Gateway</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <div class="auth-container">
     <div class="brand-header">
-        <h1 id="main-title">Login ChatApp</h1>
-        <p id="main-subtitle">Welcome back! Please enter your details.</p>
+        <h1 id="main-title">GDChat Stream</h1>
+        <p id="main-subtitle">Access your global streaming portal</p>
     </div>
 
-    <!-- PANEL 1: LOGIN -->
     <div class="form-panel active" id="login-panel">
-        <div class="input-group">
-            <label>Email or Phone Number</label>
-            <input type="text" id="login-identifier" placeholder="example@mail.com or +234..." required />
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <div class="input-container-box">
-                <input type="password" id="login-password" placeholder="•••••" required />
-                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">Show</button>
-            </div>
-        </div>
-        <div class="extra-options">
-            <label class="remember-me">
-                <input type="checkbox" id="login-remember"> Remember me
-            </label>
-        </div>
-        <button class="submit-btn" onclick="submitLogin()">Login</button>
-        <div class="switch-prompt">
-            Don't have an account? <a href="#" onclick="switchPanel('signup'); return false;">Sign Up</a>
-        </div>
+        <div class="input-group"><label>Identifier</label><input type="text" id="login-identifier" placeholder="Username/Contact" /></div>
+        <div class="input-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••" /></div>
+        <button class="submit-btn" onclick="submitLogin()">Login Gateway</button>
+        <div class="switch-prompt">Need an account? <a href="#" onclick="switchPanel('signup')">Sign Up</a></div>
     </div>
 
-    <!-- PANEL 2: REGISTRATION -->
     <div class="form-panel" id="signup-panel">
-        <div class="profile-picker-container">
-            <div class="avatar-preview" onclick="document.getElementById('avatar-file').click()">
-                <span id="avatar-icon">📷</span>
-                <img id="avatar-img" src="" alt="Avatar Preview">
-            </div>
-            <input type="file" id="avatar-file" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
-            <label style="font-size: 12px; color: var(--text-muted);">Upload Profile Picture</label>
-        </div>
-        <div class="input-group">
-            <label>Username</label>
-            <input type="text" id="signup-username" placeholder="Choose a public username" required />
-        </div>
-        <div class="input-group">
-            <label>Contact Type</label>
-            <select id="signup-type" onchange="toggleSignupInput()" style="width:100%; background:var(--bg-main); border:1px solid var(--border); padding:12px; border-radius:8px; color:white; outline:none;">
-                <option value="email">Email Address</option>
-                <option value="phone">Phone Number</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label id="signup-contact-label">Email Address</label>
-            <input type="text" id="signup-contact" placeholder="name@domain.com" required />
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <div class="input-container-box">
-                <input type="password" id="signup-password" placeholder="Create secure password" required />
-                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">Show</button>
-            </div>
-        </div>
-        <button class="submit-btn" onclick="submitSignup()">Create Account</button>
-        <div class="switch-prompt">
-            Already have an account? <a href="#" onclick="switchPanel('login'); return false;">Login</a>
-        </div>
+        <div class="input-group"><label>Select Profile Avatar</label><input type="file" id="avatar-file" accept="image/*" onchange="readAvatarString(event)" /></div>
+        <div class="input-group"><label>Username</label><input type="text" id="signup-username" placeholder="Choose username" /></div>
+        <div class="input-group"><label>Type</label><select id="signup-type"><option value="email">Email Address</option><option value="phone">Phone Number</option></select></div>
+        <div class="input-group"><label>Contact</label><input type="text" id="signup-contact" placeholder="Destination link details" /></div>
+        <div class="input-group"><label>Password</label><input type="password" id="signup-password" placeholder="Secure token passcode" /></div>
+        <button class="submit-btn" onclick="submitSignup()">Register Profiles</button>
+        <div class="switch-prompt">Registered? <a href="#" onclick="switchPanel('login')">Login</a></div>
     </div>
 
-    <!-- PANEL 3: OTP VERIFICATION -->
     <div class="form-panel" id="otp-panel">
-        <div style="text-align: center; margin-bottom: 16px;">
-            <p style="font-size: 14px; color: var(--text-muted);">We sent a 4-digit verification code to:</p>
-            <p id="otp-target-display" style="font-weight: 600; color: #0fb682; margin-top: 4px; font-size: 15px;"></p>
-        </div>
         <div class="otp-box-container">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveOtpFocus(this, 'otp2')" id="otp1">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveOtpFocus(this, 'otp3')" id="otp2">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveOtpFocus(this, 'otp4')" id="otp3">
-            <input type="text" class="otp-input" maxlength="1" oninput="verifyOtpSubmit()" id="otp4">
+            <input type="text" class="otp-input" id="otp1" maxlength="1" oninput="moveFocus(this,'otp2')">
+            <input type="text" class="otp-input" id="otp2" maxlength="1" oninput="moveFocus(this,'otp3')">
+            <input type="text" class="otp-input" id="otp3" maxlength="1" oninput="moveFocus(this,'otp4')">
+            <input type="text" class="otp-input" id="otp4" maxlength="1" oninput="verifyOtpSubmit()">
         </div>
-        <button class="submit-btn" onclick="verifyOtpSubmit()">Verify Code</button>
-        <p class="resend-text">Didn't receive code? <span onclick="resendOtpCode()">Resend Code</span></p>
+        <button class="submit-btn" onclick="verifyOtpSubmit()">Confirm OTP Entry</button>
     </div>
 </div>
 
 <script>
-    let activeSessionTarget = ""; 
-    let base64Avatar = "";
-
-    function togglePasswordVisibility(inputId, buttonEl) {
-        const input = document.getElementById(inputId);
-        if (input.type === "password") {
-            input.type = "text";
-            buttonEl.innerText = "Hide";
-        } else {
-            input.type = "password";
-            buttonEl.innerText = "Show";
-        }
-    }
-
-    function switchPanel(type) {
+    let sessionTarget = "", base64Avatar = "";
+    function switchPanel(t) {
         document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
-        if (type === 'login') {
-            document.getElementById('main-title').innerText = "Login ChatApp";
-            document.getElementById('main-subtitle').innerText = "Welcome back! Please enter your details.";
-            document.getElementById('login-panel').classList.add('active');
-        } else if (type === 'signup') {
-            document.getElementById('main-title').innerText = "Create Account";
-            document.getElementById('main-subtitle').innerText = "Join GDChat platform today.";
-            document.getElementById('signup-panel').classList.add('active');
-        } else if (type === 'otp') {
-            document.getElementById('main-title').innerText = "Security Check";
-            document.getElementById('main-subtitle').innerText = "Enter the confirmation OTP code.";
-            document.getElementById('otp-panel').classList.add('active');
-        }
+        document.getElementById(t+'-panel').classList.add('active');
     }
-
-    function toggleSignupInput() {
-        const type = document.getElementById('signup-type').value;
-        const label = document.getElementById('signup-contact-label');
-        const input = document.getElementById('signup-contact');
-        if (type === 'email') {
-            label.innerText = "Email Address";
-            input.placeholder = "name@domain.com";
-            input.type = "email";
-        } else {
-            label.innerText = "Phone Number";
-            input.placeholder = "+234...";
-            input.type = "tel";
-        }
+    function readAvatarString(e) {
+        const r = new FileReader();
+        r.onload = () => base64Avatar = r.result;
+        if(e.target.files[0]) r.readAsDataURL(e.target.files[0]);
     }
-
-    function previewAvatar(event) {
-        const input = event.target;
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const img = document.getElementById('avatar-img');
-                const icon = document.getElementById('avatar-icon');
-                img.src = reader.result;
-                img.style.display = "block";
-                icon.style.display = "none";
-                base64Avatar = reader.result; 
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function moveOtpFocus(current, nextId) {
-        if (current.value.length === 1) {
-            document.getElementById(nextId).focus();
-        }
-    }
+    function moveFocus(c, n) { if(c.value.length === 1) document.getElementById(n).focus(); }
 
     async function submitLogin() {
         const identifier = document.getElementById('login-identifier').value.trim();
         const password = document.getElementById('login-password').value;
-
-        if(!identifier || !password) {
-            alert("Please fill in your details.");
-            return;
-        }
-
-        try {
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier, password })
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.error || "Login failed.");
-                return;
-            }
-
-            activeSessionTarget = identifier;
-            document.getElementById('otp-target-display').innerText = identifier;
-            switchPanel('otp');
-        } catch (err) {
-            alert("Connection error.");
-        }
+        const res = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({identifier, password}) });
+        const d = await res.json();
+        if(!res.ok) return alert(d.error);
+        sessionTarget = identifier; switchPanel('otp');
     }
-
     async function submitSignup() {
         const username = document.getElementById('signup-username').value.trim();
         const contact = document.getElementById('signup-contact').value.trim();
         const password = document.getElementById('signup-password').value;
         const type = document.getElementById('signup-type').value;
-
-        if(!username || !contact || !password) {
-            alert("All fields are required.");
-            return;
-        }
-
-        try {
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, contact, password, type, avatar: base64Avatar })
-            });
-            const data = await response.json();
-
-            if(!response.ok) {
-                alert(data.error || "Registration rejected.");
-                return;
-            }
-
-            alert("Account registered! Opening verification screen.");
-            activeSessionTarget = contact;
-            document.getElementById('otp-target-display').innerText = contact;
-            switchPanel('otp');
-        } catch (err) {
-            alert("Registration network error.");
-        }
+        const res = await fetch('/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, contact, password, type, avatar:base64Avatar}) });
+        const d = await res.json();
+        if(!res.ok) return alert(d.error);
+        sessionTarget = contact; switchPanel('otp');
     }
-
     async function verifyOtpSubmit() {
-        const otpCode = document.getElementById('otp1').value + 
-                        document.getElementById('otp2').value + 
-                        document.getElementById('otp3').value +
+        const code = document.getElementById('otp1').value + document.getElementById('otp2').value + document.getElementById('otp3').value + document.getElementById('otp4').value;
+        const res = await fetch('/verify-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({identifier:sessionTarget, code}) });
+        const d = await res.json();
+        if(!res.ok) return alert(d.error);
+        localStorage.setItem('chatUser', JSON.stringify(d.user));
+        window.location.href = "/appview.html";
+    }
+</script>
+</body>
+</html>
