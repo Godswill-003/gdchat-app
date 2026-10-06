@@ -94,8 +94,8 @@
                 <div class="chat-header" id="chatPartnerHeader">Select a contact from the sidebar to chat securely</div>
                 <div class="chat-screen" id="chatScreen"></div>
                 <div class="input-wrapper">
-                    <input type="text" id="messageInput" placeholder="Select an online contact to text..." disabled>
-                    <button class="send-btn" id="sendBtn">➤</button>
+                    <input type="text" id="message-input" placeholder="Type your message here..." />
+<button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
                 </div>
             </div>
         </div>
@@ -155,4 +155,81 @@
             socket = io();
             socket.emit('registerOnlineUser', myUsername);
 
-            socket.on('updateUserList', (users) => {
+            socket.on('updateUserList', (users) => {// 📥 RECEIVING A CHAT MESSAGE FROM THE SERVER
+    socket.on('receive_message', (data) => {
+        const chatWindow = document.getElementById('chat-window'); // Make sure your messages box has this ID
+        if (!chatWindow) return;
+
+        const messageDiv = document.createElement('div');
+        
+        // Style differently based on whether you sent it or someone else did
+        if (data.sender === myUsername) {
+            messageDiv.className = 'message sent';
+        } else {
+            messageDiv.className = 'message received';
+        }
+
+        messageDiv.innerHTML = `
+            <span class="username"><b>${data.sender}</b></span>
+            <p class="text">${data.message}</p>
+            <span class="time">${data.timestamp}</span>
+        `;
+
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scrolls container down
+    });
+
+    // 📢 RECEIVING SYSTEM MESSAGES (Joins/Leaves)
+    socket.on('system_message', (text) => {
+        const chatWindow = document.getElementById('chatScreen');
+        if (!chatWindow) return;
+
+        const systemDiv = document.createElement('div');
+        systemDiv.className = 'system-notification';
+        systemDiv.style.textAlign = 'center';
+        systemDiv.style.color = '#727272';
+        systemDiv.style.margin = '10px 0';
+        systemDiv.innerText = text;
+        
+        chatWindow.appendChild(systemDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    });
+                   // 📥 RECEIVING A CHAT MESSAGE FROM THE SERVER
+    socket.on('receive_message', (data) => {
+        const chatWindow = document.getElementById('chatScreen'); // Make sure your messages box has this ID
+        if (!chatWindow) return;
+
+        const messageDiv = document.createElement('div');
+        
+        // Style differently based on whether you sent it or someone else did
+        if (data.sender === myUsername) {
+            messageDiv.className = 'message sent';
+        } else {
+            messageDiv.className = 'message received';
+        }
+
+        messageDiv.innerHTML = `
+            <span class="username"><b>${data.sender}</b></span>
+            <p class="text">${data.message}</p>
+            <span class="time">${data.timestamp}</span>
+        `;
+
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scrolls container down
+    });
+
+    // 📢 RECEIVING SYSTEM MESSAGES (Joins/Leaves)
+    socket.on('system_message', (text) => {
+        const chatWindow = document.getElementById('chat-window');
+        if (!chatWindow) return;
+
+        const systemDiv = document.createElement('div');
+        systemDiv.className = 'system-notification';
+        systemDiv.style.textAlign = 'center';
+        systemDiv.style.color = '#727272';
+        systemDiv.style.margin = '10px 0';
+        systemDiv.innerText = text;
+        
+        chatWindow.appendChild(systemDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    });
