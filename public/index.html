@@ -85,6 +85,13 @@
             margin-bottom: 8px;
         }
 
+        .input-container-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
         input[type="text"],
         input[type="password"],
         input[type="email"],
@@ -107,13 +114,13 @@
         .toggle-password {
             position: absolute;
             right: 16px;
-            top: 38px;
             background: none;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
             font-size: 12px;
             font-weight: 600;
+            z-index: 10;
         }
 
         .profile-picker-container {
@@ -258,8 +265,10 @@
         </div>
         <div class="input-group">
             <label>Password</label>
-            <input type="password" id="login-password" placeholder="••••••" required />
-            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password')">Show</button>
+            <div class="input-container-box">
+                <input type="password" id="login-password" placeholder="••••••" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">Show</button>
+            </div>
         </div>
         <div class="extra-options">
             <label class="remember-me">
@@ -299,8 +308,10 @@
         </div>
         <div class="input-group">
             <label>Password</label>
-            <input type="password" id="signup-password" placeholder="Create secure password" required />
-            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password')">Show</button>
+            <div class="input-container-box">
+                <input type="password" id="signup-password" placeholder="Create secure password" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">Show</button>
+            </div>
         </div>
         <button class="submit-btn" onclick="submitSignup()">Create Account</button>
         <div class="switch-prompt">
@@ -312,7 +323,3 @@
     <div class="form-panel" id="otp-panel">
         <div style="text-align: center; margin-bottom: 16px;">
             <p style="font-size: 14px; color: var(--text-muted);">We sent a 4-digit verification code to:</p>
-            <p id="otp-target-display" style="font-weight: 600; color: var(--accent); margin-top: 4px; font-size: 15px;"></p>
-        </div>
-        <div class="otp-box-container">
-            <input type="text" class="otp-input" maxlength="1" oninput="moveOtpFocus(this, 'otp2')" id="otp1">
