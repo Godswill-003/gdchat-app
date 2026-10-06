@@ -201,21 +201,16 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('system_message', `${username} has joined the chat.`);
     });
 
-    // Listen for incoming chat messages from a user
+        // Listen for incoming chat messages from a user
     socket.on('send_message', (data) => {
-        // data looks like: { sender: 'Godswill', message: 'Hello!' }
-        
         const msgPayload = {
             sender: data.sender,
             message: data.message,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        // Broadcast the message to ALL connected users (including the sender)
+        // Broadcast the message to ALL connected users
         io.emit('receive_message', msgPayload);
-        
-        // OPTIONAL: You can write a db.run() query here to save 
-        // the message payload permanently to a messages table!
     });
 
     // Handle user disconnecting
@@ -225,13 +220,10 @@ io.on('connection', (socket) => {
         }
         console.log(`User disconnected: ${socket.id}`);
     });
-', (data) => {
-        // data looks like: { sender: 'Godswill', message: 'Hello!' }
-        
-        const msgPayload = {
-            sender: data.sender,
-            message: data.message,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
+});
 
-        
+// Start the server (Make sure this matches your port variable name)
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
