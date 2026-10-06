@@ -223,7 +223,7 @@ io.on('connection', (socket) => {
 });
 
 // Start the server (Make sure this matches your port variable name)
-const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
