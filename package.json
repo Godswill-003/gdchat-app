@@ -1,15 +1,18 @@
 {
-  "name": "gdchat-app",
+  "name": "gdchat-platform",
   "version": "1.0.0",
-  "description": "Secure Chat Platform",
+  "description": "Secure Realtime Chat Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
     "socket.io": "^4.7.5",
-    "sqlite3": "^5.1.7",
-    "bcrypt": "^5.1.1"
+    "sqlite3": "^5.1.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
