@@ -3,233 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDChat Platform</title>
+    <title>GDChat Platform - Secure Entry</title>
     <style>
         :root {
-            --bg-main: #0b141a;       /* Deep solid dark background */
-            --bg-sidebar: #111b21;    /* Slightly lighter dark for sidebar panel */
-            --bg-header: #202c33;     /* Dark accent background for header titles */
-            --border-color: #222e35;  /* Clean thin partition separators */
-            --accent-green: #00a884;  /* Premium active status indicator green */
-            --text-white: #e9edef;    /* Highly readable crisp white for text */
-            --text-muted: #8696a0;    /* Soft gray for secondary hints */
-            --bubble-sent: #005c4b;   /* Solid dark green for outgoing messages */
-            --bubble-recv: #202c33;   /* Solid matching gray-dark for incoming messages */
+            --bg-main: #0f141c;
+            --bg-card: #18202c;
+            --accent: #0fb682;
+            --accent-hover: #0ca374;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --border: #26354a;
         }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-white); height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        
-        /* Sleek, Plain Dark Authentication Window Context Container */
-        .auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
             background-color: var(--bg-main);
-            display: flex; justify-content: center; align-items: center; z-index: 100;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .auth-container { background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 35px; border-radius: 12px; width: 90%; max-width: 380px; text-align: center; }
-        .auth-container h2 { margin-bottom: 25px; color: var(--text-white); font-size: 1.8rem; font-weight: 600; }
-        .auth-container input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; background: var(--bg-main); color: var(--text-white); outline: none; }
-        .auth-container input:focus { border-color: var(--accent-green); }
-        .auth-btn { width: 100%; padding: 14px; background: var(--accent-green); color: var(--text-white); border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 15px; font-weight: bold; }
-        .auth-switch { margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
-        
-        /* Structured Private Chat Dashboard Framework Workspace */
-        .app-container { display: none; width: 100vw; height: 100vh; flex-direction: column; background-color: var(--bg-main); }
-        header { background-color: var(--bg-header); color: var(--text-white); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
-        .main-layout { display: flex; flex: 1; overflow: hidden; width: 100vw; }
-        
-        /* Left Navigation Panel Contacts Area List */
-        .sidebar { width: 35%; background: var(--bg-sidebar); overflow-y: auto; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
-        .sidebar-title { padding: 15px; font-size: 0.85rem; background: var(--bg-header); color: var(--accent-green); font-weight: bold; letter-spacing: 1px; border-bottom: 1px solid var(--border-color); }
-        .user-item { padding: 18px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
-        .user-item:hover { background: var(--bg-header); }
-        .user-item.active { background: var(--bg-header); border-left: 4px solid var(--accent-green); }
-        
-        /* Right Active Private Viewport Pane Layout */
-        .chat-area { width: 65%; display: flex; flex-direction: column; background: var(--bg-main); position: relative; }
-        .chat-header { background: var(--bg-header); padding: 15px 20px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid var(--border-color); color: var(--text-white); }
-        .chat-screen { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background-color: var(--bg-main); }
-        
-        /* Secure Message Chat Bubbles & Removal Operations Controls */
-        .bubble { max-width: 65%; padding: 10px 14px; border-radius: 8px; position: relative; font-size: 0.95rem; display: flex; flex-direction: column; line-height: 1.4; box-shadow: 0 1px 1px rgba(0,0,0,0.15); }
-        .bubble.sent { background-color: var(--bubble-sent); align-self: flex-end; border-top-right-radius: 0; color: var(--text-white); }
-        .bubble.received { background-color: var(--bubble-recv); align-self: flex-start; border-top-left-radius: 0; color: var(--text-white); }
-        .delete-msg-btn { font-size: 0.65rem; color: #ff5e5e; cursor: pointer; text-align: right; margin-top: 6px; display: none; font-weight: bold; text-decoration: underline; }
-        .bubble.sent:hover .delete-msg-btn { display: block; }
-        
-        /* Message Field Footer Panel Control Tray Layout */
-        .input-wrapper { background-color: var(--bg-header); padding: 15px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--border-color); }
-        .input-wrapper input { flex: 1; background-color: var(--bg-main); border: 1px solid var(--border-color); padding: 14px 20px; border-radius: 24px; color: var(--text-white); outline: none; font-size: 1rem; }
-        .input-wrapper input:focus { border-color: var(--accent-green); }
-        .input-wrapper input:disabled { opacity: 0.4; cursor: not-allowed; }
-        .send-btn { background: transparent; border: none; font-size: 1.6rem; color: var(--accent-green); cursor: pointer; padding: 0 5px; }
+
+        .auth-container {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            padding: 32px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-panel {
+            display: none;
+        }
+
+        .form-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"] {
+            width: 100%;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .profile-picker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .avatar-preview {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background-color: var(--bg-main);
+            border: 2px dashed var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .avatar-preview span {
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+
+        .extra-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .remember-me input {
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .switch-prompt {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .switch-prompt a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* OTP Overlay Section */
+        .otp-box-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .otp-input {
+            width: 56px;
+            height: 56px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .otp-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(15, 182, 130, 0.2);
+        }
+
+        .resend-text {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+        .resend-text span {
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
-    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-    <!-- Pure Dark Screen Login Layout Panel -->
-    <div class="auth-overlay" id="authOverlay">
-        <div class="auth-container">
-            <h2 id="authTitle">Login ChatApp</h2>
-            <input type="text" id="authUsername" placeholder="Enter username" autocomplete="off">
-            <input type="password" id="authPassword" placeholder="Enter Password">
-            <button class="auth-btn" id="authSubmitBtn">Login</button>
-            <div class="auth-switch" id="authSwitchMode">Don't have an account? Sign Up</div>
+<div class="auth-container">
+    <div class="brand-header">
+        <h1 id="main-title">Login ChatApp</h1>
+        <p id="main-subtitle">Welcome back! Please enter your details.</p>
+    </div>
+
+    <!-- 🔑 PANEL 1: LOGIN -->
+    <div class="form-panel active" id="login-panel">
+        <div class="input-group">
+            <label>Email or Phone Number</label>
+            <input type="text" id="login-identifier" placeholder="example@mail.com or +234..." required />
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+                <input type="password" id="login-password" placeholder="••••••" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password')">Show</button>
+            </div>
+        </div>
+        <div class="extra-options">
+            <label class="remember-me">
+                <input type="checkbox" id="login-remember"> Remember me
+            </label>
+        </div>
+        <button class="submit-btn" onclick="submitLogin()">Login</button>
+        <div class="switch-prompt">
+            Don't have an account? <a href="#" onclick="switchPanel('signup')">Sign Up</a>
         </div>
     </div>
 
-    <!-- Main Secure Dashboard Workspace Canvas -->
-    <div class="app-container" id="appScreen">
-        <header>
-            <span id="welcomeLabel">GDChat</span>
-            <span style="font-size: 0.85rem; color: var(--accent-green); font-weight: normal;">保护 Protected Session</span>
-        </header>
-        <div class="main-layout">
-            <div class="sidebar">
-                <div class="sidebar-title">ONLINE CONTACTS</div>
-                <div id="userList"></div>
+    <!-- 📝 PANEL 2: REGISTRATION -->
+    <div class="form-panel" id="signup-panel">
+        <div class="profile-picker-container">
+            <div class="avatar-preview" onclick="document.getElementById('avatar-file').click()">
+                <span id="avatar-icon">📷</span>
+                <img id="avatar-img" src="" alt="Avatar Preview">
             </div>
-            <div class="chat-area">
-                <div class="chat-header" id="chatPartnerHeader">Select a contact from the sidebar to chat securely</div>
-                <div class="chat-screen" id="chatScreen"></div>
-                <div class="input-wrapper">
-                    <input type="text" id="message-input" placeholder="Type your message here..." />
-<button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
-                </div>
+            <input type="file" id="avatar-file" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
+            <label style="font-size: 12px; color: var(--text-muted);">Upload Profile Picture</label>
+        </div>
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="signup-username" placeholder="Choose a public username" required />
+        </div>
+        <div class="input-group">
+            <label>Contact Type</label>
+            <select id="signup-type" onchange="toggleSignupInput()" style="width:100%; background:var(--bg-main); border:1px solid var(--border); padding:12px; border-radius:8px; color:white; outline:none;">
+                <option value="email">Email Address</option>
+                <option value="phone">Phone Number</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="signup-contact-label">Email Address</label>
+            <input type="text" id="signup-contact" placeholder="name@domain.com" required />
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+                <input type="password" id="signup-password" placeholder="Create secure password" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password')">Show</button>
             </div>
+        </div>
+        <button class="submit-btn" onclick="submitSignup()">Create Account</button>
+        <div class="switch-prompt">
+            Already have an account? <a href="#" onclick="switchPanel('login')">Login</a>
         </div>
     </div>
 
-    <script>
-        let socket;
-        let myUsername = "";
-        let activeTargetUser = "";
-        let isLoginMode = true;
-
-        const authOverlay = document.getElementById('authOverlay');
-        const appScreen = document.getElementById('appScreen');
-        const authTitle = document.querySelector('.auth-container h2');
-        const authSubmitBtn = document.getElementById('authSubmitBtn');
-        const authSwitchMode = document.getElementById('authSwitchMode');
-        
-        authSwitchMode.addEventListener('click', () => {
-            isLoginMode = !isLoginMode;
-            authTitle.textContent = isLoginMode ? "Login ChatApp" : "Create Account";
-            authSubmitBtn.textContent = isLoginMode ? "Login" : "Sign Up";
-            authSwitchMode.textContent = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
-        });
-
-        authSubmitBtn.addEventListener('click', async () => {
-            const username = document.getElementById('authUsername').value.trim();
-            const password = document.getElementById('authPassword').value;
-            if(!username || !password) return alert("Please fill fields");
-
-            const path = isLoginMode ? '/api/login' : '/api/register';
-            const response = await fetch(path, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const result = await response.json();
-
-            if (result.success) {
-                if (!isLoginMode) {
-                    alert("Registration successful! Please login.");
-                    isLoginMode = true;
-                    authSwitchMode.click();
-                } else {
-                    myUsername = username;
-                    initializeChatSystem();
-                }
-            } else {
-                alert(result.error || "Authentication failed");
-            }
-        });
-
-        function initializeChatSystem() {
-            authOverlay.style.display = "none";
-            appScreen.style.display = "flex";
-            document.getElementById('welcomeLabel').textContent = `GDChat (${myUsername})`;
-
-            socket = io();
-            socket.emit('registerOnlineUser', myUsername);
-
-            socket.on('updateUserList', (users) => {// 📥 RECEIVING A CHAT MESSAGE FROM THE SERVER
-    socket.on('receive_message', (data) => {
-        const chatWindow = document.getElementById('chat-window'); // Make sure your messages box has this ID
-        if (!chatWindow) return;
-
-        const messageDiv = document.createElement('div');
-        
-        // Style differently based on whether you sent it or someone else did
-        if (data.sender === myUsername) {
-            messageDiv.className = 'message sent';
-        } else {
-            messageDiv.className = 'message received';
-        }
-
-        messageDiv.innerHTML = `
-            <span class="username"><b>${data.sender}</b></span>
-            <p class="text">${data.message}</p>
-            <span class="time">${data.timestamp}</span>
-        `;
-
-        chatWindow.appendChild(messageDiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scrolls container down
-    });
-
-    // 📢 RECEIVING SYSTEM MESSAGES (Joins/Leaves)
-    socket.on('system_message', (text) => {
-        const chatWindow = document.getElementById('chatScreen');
-        if (!chatWindow) return;
-
-        const systemDiv = document.createElement('div');
-        systemDiv.className = 'system-notification';
-        systemDiv.style.textAlign = 'center';
-        systemDiv.style.color = '#727272';
-        systemDiv.style.margin = '10px 0';
-        systemDiv.innerText = text;
-        
-        chatWindow.appendChild(systemDiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    });
-                   // 📥 RECEIVING A CHAT MESSAGE FROM THE SERVER
-    socket.on('receive_message', (data) => {
-        const chatWindow = document.getElementById('chatScreen'); // Make sure your messages box has this ID
-        if (!chatWindow) return;
-
-        const messageDiv = document.createElement('div');
-        
-        // Style differently based on whether you sent it or someone else did
-        if (data.sender === myUsername) {
-            messageDiv.className = 'message sent';
-        } else {
-            messageDiv.className = 'message received';
-        }
-
-        messageDiv.innerHTML = `
-            <span class="username"><b>${data.sender}</b></span>
-            <p class="text">${data.message}</p>
-            <span class="time">${data.timestamp}</span>
-        `;
-
-        chatWindow.appendChild(messageDiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scrolls container down
-    });
-
-    // 📢 RECEIVING SYSTEM MESSAGES (Joins/Leaves)
-    socket.on('system_message', (text) => {
-        const chatWindow = document.getElementById('chat-window');
-        if (!chatWindow) return;
-
-        const systemDiv = document.createElement('div');
-        systemDiv.className = 'system-notification';
-        systemDiv.style.textAlign = 'center';
-        systemDiv.style.color = '#727272';
-        systemDiv.style.margin = '10px 0';
-        systemDiv.innerText = text;
-        
-        chatWindow.appendChild(systemDiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    });
+    <!-- 💬 PANEL 3: WHATSAPP-STYLE OTP VERIFICATION -->
+    <div class="form-panel" id="otp-panel">
+        <div style="text-align: center; margin-bottom: 16px;">
